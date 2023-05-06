@@ -11,9 +11,8 @@ MU_0 = 1.25663706212e-6
 class SimFrame:
     def __init__(self, path, current=DEFAULT_CURRENT):
         pic = Image.open(path, "r")
-        self.arr = np.asarray(pic)[:,:,0]
-        self.arr = block_reduce(self.arr, block_size=(5, 5), func=np.mean)
-        self.arr = self.arr > 200
+        self.arr = np.asarray(pic)[:,:,0] / 255
+        self.arr = block_reduce(self.arr, block_size=(10, 10), func=np.mean)
         self.nocurrent = self.arr.sum() == 0
         if self.nocurrent:
             self.current_density = None
@@ -26,14 +25,15 @@ class SimFrame:
         return f"< SimFrame {self.arr.shape} with {cd} >"
 
     def b_field(self):
-        SCALE_FAC = 4
+        SCALE_FAC = 2
         field = np.zeros((*( i // SCALE_FAC for i in self.arr.shape ), 2))
         for cx, row in enumerate(self.arr):
-            for cy, is_conductor in enumerate(row):
+            for cy, prop_conductor in enumerate(row):
                 pfx = f"({cx}, {cy}) -> "
-                if not is_conductor:
+                if prop_conductor == 0:
                     print(pfx + "Not conducting.")
-                if is_conductor:
+                    continue
+                if prop_conductor != 0:
                     print(pfx + "Calculating conductor contributions...")
                     for px in range(field.shape[0]):
                         for py in range(field.shape[1]):
@@ -53,6 +53,7 @@ class SimFrame:
                             contribution /= dist ** 3
                             contribution *= MU_0
                             contribution /= 4 * math.pi
+                            contribution *= prop_conductor
                             if math.isnan(contribution[0]):
                                 continue
                             if math.isnan(contribution[1]):
