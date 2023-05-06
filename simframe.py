@@ -1,6 +1,7 @@
 from PIL import Image
 import numpy as np
 from skimage.measure import block_reduce
+import cv2
 import math
 
 DEFAULT_CURRENT = 1  # Amps
@@ -10,12 +11,14 @@ MU_0 = 1.25663706212e-6
 
 class SimFrame:
     def __init__(self, path, current=DEFAULT_CURRENT):
-        pic = Image.open(path, "r")
+        self.path = path
+        pic = Image.open(self.path, "r")
         self.arr = np.asarray(pic)[:,:,0] / 255
         self.arr = block_reduce(self.arr, block_size=(10, 10), func=np.mean)
+        self.b_field = None
+        self.current_density = None
         self.nocurrent = self.arr.sum() == 0
         if self.nocurrent:
-            self.current_density = None
             return
         cross_sectional_area = self.arr.sum() / self.arr.size
         self.current_density = current / cross_sectional_area
@@ -24,7 +27,7 @@ class SimFrame:
         cd = f"J = {self.current_density}"
         return f"< SimFrame {self.arr.shape} with {cd} >"
 
-    def b_field(self):
+    def bake_b_field(self):
         SCALE_FAC = 2
         field = np.zeros((*( i // SCALE_FAC for i in self.arr.shape ), 2))
         for cx, row in enumerate(self.arr):
@@ -59,11 +62,16 @@ class SimFrame:
                             if math.isnan(contribution[1]):
                                 continue
                             field[px, py] += contribution[0:2]
-        return field
+        self.b_field = field
+
+    def draw_b_field(self):
+        image = cv2.imread(self.path)
+        cv2.imshow("Testing: B-Field", image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 test = SimFrame("frames/BadApple_358.jpg")
 
 if __name__ == "__main__":
-    print(test)
-    print(test.arr)
+    test.draw_b_field()
 
