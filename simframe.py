@@ -16,7 +16,12 @@ class SimFrame:
 
     def __str__(self):
         cd = f"J = {self.current_density}"
-        return f"< SimFrame ({self.arr.size} pixels) with {cd} >"
+        return f"< SimFrame {self.arr.shape} with {cd} >"
+
+    def b_field(self):
+        field = np.zeros((*self.arr.shape, 2))
+        # TODO the actual thing lol
+        return field
 
 test = SimFrame("frames/BadApple_358.jpg")
 
