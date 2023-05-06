@@ -26,21 +26,25 @@ class SimFrame:
         return f"< SimFrame {self.arr.shape} with {cd} >"
 
     def b_field(self):
-        field = np.zeros((*self.arr.shape, 2))
+        SCALE_FAC = 4
+        field = np.zeros((*( i // SCALE_FAC for i in self.arr.shape ), 2))
         for cx, row in enumerate(self.arr):
             for cy, is_conductor in enumerate(row):
+                pfx = f"({cx}, {cy}) -> "
+                if not is_conductor:
+                    print(pfx + "Not conducting.")
                 if is_conductor:
-                    print("Calculating contributions of conducting volume element...")
-                    for px in range(self.arr.shape[0]):
-                        for py in range(self.arr.shape[1]):
+                    print(pfx + "Calculating conductor contributions...")
+                    for px in range(field.shape[0]):
+                        for py in range(field.shape[1]):
                             jdv = np.array([
                                 0.,
                                 0.,
                                 self.current_density,
                             ])
                             r = np.array([
-                                cx - px,
-                                cy - py,
+                                cx - (px * SCALE_FAC),
+                                cy - (py * SCALE_FAC),
                                 0.,
                             ])
                             cross_product = np.cross(jdv, r)
@@ -49,6 +53,10 @@ class SimFrame:
                             contribution /= dist ** 3
                             contribution *= MU_0
                             contribution /= 4 * math.pi
+                            if math.isnan(contribution[0]):
+                                continue
+                            if math.isnan(contribution[1]):
+                                continue
                             field[px, py] += contribution[0:2]
         return field
 
