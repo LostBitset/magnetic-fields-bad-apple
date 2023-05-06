@@ -98,14 +98,16 @@ class SimFrame:
                 cv2.arrowedLine(over, startp[::-1], endp[::-1], color, width)
                 image = cv2.addWeighted(over, alpha, image, 1 - alpha, 0)
                 print("ok")
-        cv2.imshow("Testing: B-Field", image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        print("Created image with B-field. Returning it.")
+        return image
 
 test = SimFrame("frames/BadApple_810.jpg")
 
 if __name__ == "__main__":
     test.bake_b_field()
     print("=== DONE CALCULATING B-FIELD!!! ===")
-    test.draw_b_field()
+    image = test.draw_b_field()
+    cv2.imshow("Test image with B-field", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
