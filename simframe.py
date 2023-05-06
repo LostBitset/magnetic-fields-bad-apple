@@ -85,14 +85,23 @@ class SimFrame:
                 x = (ix + 0.5) * B_FIELD_SCALE_FAC * BLOCK_SIZE
                 y = (iy + 0.5) * B_FIELD_SCALE_FAC * BLOCK_SIZE
                 x, y = int(x), int(y)
-                print(x, y)
-        cv2.imshow("Testing: B-Field", image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+                vec_rescaled = vec * 1e8
+                startp = (x, y)
+                endp = (x + vec_rescaled[0], y + vec_rescaled[1])
+                color = (0, 0, 255)
+                width = 10
+                print(f"Drawing arrow at ({x}, {y})...")
+                cv2.arrowedLine(image, startp, endp, color, width)
+                print("ok")
+                return
+        # cv2.imshow("Testing: B-Field", image)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
 test = SimFrame("frames/BadApple_358.jpg")
 
 if __name__ == "__main__":
     test.bake_b_field()
+    print("=== DONE CALCULATING B-FIELD!!! ===")
     test.draw_b_field()
 
