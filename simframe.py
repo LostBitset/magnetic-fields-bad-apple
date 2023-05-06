@@ -73,18 +73,30 @@ class SimFrame:
 
     def draw_b_field(self):
         image = cv2.imread(self.path)
+        norms = np.zeros(self.b_field.shape[:2])
         for ix, row in enumerate(self.b_field):
-            for iy, vec in enumerate(row):
+            for iy, vec_raw in enumerate(row):
+                norms[ix][iy] = np.linalg.norm(vec_raw * 1e8)
+        for ix, row in enumerate(self.b_field):
+            for iy, vec_raw in enumerate(row):
                 x = ix * BLOCK_SIZE
                 y = iy * BLOCK_SIZE
                 x, y = int(x), int(y)
-                vec_rescaled = vec * 1e8
+                vec = vec_raw * 1e8
+                vec_norm = norms[ix][iy]
+                vec_unit = vec / vec_norm
                 startp = (x, y)
-                endp = (x + int(vec_rescaled[0]), y + int(vec_rescaled[1]))
+                endp = (
+                    x + int(vec_unit[0] * BLOCK_SIZE),
+                    y + int(vec_unit[1] * BLOCK_SIZE),
+                )
                 color = (0, 0, 255)
                 width = 2
+                alpha = vec_norm / norms.max()
                 print(f"Drawing arrow at ({x}, {y})...")
-                cv2.arrowedLine(image, startp[::-1], endp[::-1], color, width)
+                over = image.copy()
+                cv2.arrowedLine(over, startp[::-1], endp[::-1], color, width)
+                image = cv2.addWeighted(over, alpha, image, 1 - alpha, 0)
                 print("ok")
         cv2.imshow("Testing: B-Field", image)
         cv2.waitKey(0)
