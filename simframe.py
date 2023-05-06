@@ -25,10 +25,12 @@ class SimFrame:
         )
         self.b_field = None
         self.current_density = None
-        self.nocurrent = self.arr.sum() == 0
-        if self.nocurrent:
-            return
         cross_sectional_area = self.arr.sum() / self.arr.size
+        print(f"[info] Cross sectional area: {cross_sectional_area}")
+        self.nocurrent = cross_sectional_area < 0.00001
+        if self.nocurrent:
+            print("[info] NO CURRENT")
+            return
         self.current_density = current / cross_sectional_area
 
     def __str__(self):
@@ -36,6 +38,8 @@ class SimFrame:
         return f"< SimFrame {self.arr.shape} with {cd} >"
 
     def bake_b_field(self):
+        if self.nocurrent:
+            return
         field = np.zeros((*self.arr.shape, 2))
         for cx, row in enumerate(self.arr):
             for cy, prop_conductor in enumerate(row):
@@ -73,6 +77,8 @@ class SimFrame:
 
     def draw_b_field(self):
         image = cv2.imread(self.path)
+        if self.nocurrent:
+            return image
         norms = np.zeros(self.b_field.shape[:2])
         for ix, row in enumerate(self.b_field):
             for iy, vec_raw in enumerate(row):

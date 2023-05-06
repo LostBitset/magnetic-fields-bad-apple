@@ -1,7 +1,7 @@
 from simframe import SimFrame
 import cv2
 
-# Frames range from 0 to 6571
+# Frames range from 1 to 6571
 
 def process_frame(n):
     pfx = f"[process_frame] (Frame {n}): "
@@ -17,5 +17,6 @@ def process_frame(n):
         raise Exception("ERROR!! Failed to save image.")
     print(pfx + "All done.")
 
+process_frame(1)
 process_frame(810)
 
