@@ -91,7 +91,7 @@ class SimFrame:
                 color = (0, 0, 255)
                 width = 2
                 print(f"Drawing arrow at ({x}, {y})...")
-                cv2.arrowedLine(image, startp, endp, color, width)
+                cv2.arrowedLine(image, startp[::-1], endp[::-1], color, width)
                 print("ok")
         cv2.imshow("Testing: B-Field", image)
         cv2.waitKey(0)
