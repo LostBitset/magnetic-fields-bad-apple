@@ -1,6 +1,9 @@
 # ADDED: Extracted frames from extract.py
 frames/
 
+# ADDED: Output frames from render.py
+outframes/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
