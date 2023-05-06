@@ -17,6 +17,6 @@ def process_frame(n):
         raise Exception("ERROR!! Failed to save image.")
     print(pfx + "All done.")
 
-process_frame(1)
-process_frame(810)
+for i in range(1, 6572):
+    process_frame(i)
 
