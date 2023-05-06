@@ -9,12 +9,24 @@ DEFAULT_CURRENT = 1  # Amps
 # Magnetic permeability of free space
 MU_0 = 1.25663706212e-6
 
+# Relative resolution of the sampled b-field
+# Higher number -> lower resolution
+B_FIELD_SCALE_FAC = 1
+
+# Size of the blocks to treat as single volume elements
+# Higher number -> lower resolution
+BLOCK_SIZE = 20
+
 class SimFrame:
     def __init__(self, path, current=DEFAULT_CURRENT):
         self.path = path
         pic = Image.open(self.path, "r")
         self.arr = np.asarray(pic)[:,:,0] / 255
-        self.arr = block_reduce(self.arr, block_size=(10, 10), func=np.mean)
+        self.arr = block_reduce(
+            self.arr,
+            block_size=(BLOCK_SIZE, BLOCK_SIZE),
+            func=np.mean,
+        )
         self.b_field = None
         self.current_density = None
         self.nocurrent = self.arr.sum() == 0
@@ -28,7 +40,7 @@ class SimFrame:
         return f"< SimFrame {self.arr.shape} with {cd} >"
 
     def bake_b_field(self):
-        SCALE_FAC = 2
+        SCALE_FAC = B_FIELD_SCALE_FAC
         field = np.zeros((*( i // SCALE_FAC for i in self.arr.shape ), 2))
         for cx, row in enumerate(self.arr):
             for cy, prop_conductor in enumerate(row):
@@ -38,6 +50,8 @@ class SimFrame:
                     continue
                 if prop_conductor != 0:
                     print(pfx + "Calculating conductor contributions...")
+                    cx_ctr = cx + (BLOCK_SIZE * SCALE_FAC) / 2
+                    cy_ctr = cy + (BLOCK_SIZE * SCALE_FAC) / 2
                     for px in range(field.shape[0]):
                         for py in range(field.shape[1]):
                             jdv = np.array([
@@ -46,8 +60,8 @@ class SimFrame:
                                 self.current_density,
                             ])
                             r = np.array([
-                                cx - (px * SCALE_FAC),
-                                cy - (py * SCALE_FAC),
+                                cx_ctr - (px * SCALE_FAC),
+                                cy_ctr - (py * SCALE_FAC),
                                 0.,
                             ])
                             cross_product = np.cross(jdv, r)
@@ -66,6 +80,12 @@ class SimFrame:
 
     def draw_b_field(self):
         image = cv2.imread(self.path)
+        for ix, row in enumerate(self.b_field):
+            for iy, vec in enumerate(row):
+                x = (ix + 0.5) * B_FIELD_SCALE_FAC * BLOCK_SIZE
+                y = (iy + 0.5) * B_FIELD_SCALE_FAC * BLOCK_SIZE
+                x, y = int(x), int(y)
+                print(x, y)
         cv2.imshow("Testing: B-Field", image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -73,5 +93,6 @@ class SimFrame:
 test = SimFrame("frames/BadApple_358.jpg")
 
 if __name__ == "__main__":
+    test.bake_b_field()
     test.draw_b_field()
 
