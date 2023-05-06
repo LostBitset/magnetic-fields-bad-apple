@@ -85,7 +85,7 @@ class SimFrame:
                 x = ix * B_FIELD_SCALE_FAC * BLOCK_SIZE
                 y = iy * B_FIELD_SCALE_FAC * BLOCK_SIZE
                 x, y = int(x), int(y)
-                vec_rescaled = (10, 10)
+                vec_rescaled = vec * 1e8
                 startp = (x, y)
                 endp = (x + int(vec_rescaled[0]), y + int(vec_rescaled[1]))
                 color = (0, 0, 255)
@@ -97,7 +97,7 @@ class SimFrame:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-test = SimFrame("frames/BadApple_358.jpg")
+test = SimFrame("frames/BadApple_810.jpg")
 
 if __name__ == "__main__":
     test.bake_b_field()
